@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -47,7 +48,12 @@
   .photo-drop img { max-height: 160px; border-radius: 8px; margin: 0 auto 10px; }
   .photo-drop span { color: var(--muted); font-size: 0.9rem; }
 
-  .toolbar { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .toolbar {
+    display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;
+    position: sticky; top: 8px; z-index: 20;
+    background: var(--paper); padding: 8px; border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+  }
   .toolbar button {
     font-family: var(--font-body); font-size: 0.85rem; font-weight: 600;
     padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(20,24,28,0.12);
@@ -162,7 +168,10 @@
           <button type="button" data-cmd="formatBlock" data-val="h2">Titre</button>
           <button type="button" data-cmd="formatBlock" data-val="p">Texte</button>
           <button type="button" data-cmd="insertUnorderedList">Liste</button>
+          <button type="button" id="insertImageBtn">🖼️ Photo</button>
+          <button type="button" id="insertLinkBtn">🔗 Lien</button>
         </div>
+        <input type="file" id="inlineImageInput" accept="image/*" style="display:none;">
         <div class="editor" id="fBody" contenteditable="true"></div>
         <p class="hint">Éditeur simple — sélectionne du texte puis clique un bouton pour le mettre en forme.</p>
       </div>
@@ -178,6 +187,22 @@
     <div class="existing-list" id="existingList"></div>
   </div>
 
+</div>
+
+<!-- Modal d'insertion de lien -->
+<div class="preview-overlay" id="linkOverlay" style="display:none;">
+  <div class="preview-panel" style="max-width:480px;">
+    <p style="font-family: var(--font-display); font-size: 1.2rem; margin: 0 0 16px;">Insérer un lien</p>
+    <div class="field">
+      <label for="linkUrlInput">Colle un lien, ou choisis un article publié</label>
+      <input type="text" id="linkUrlInput" list="linkSuggestions" placeholder="https://... ou choisis un article ci-dessous">
+      <datalist id="linkSuggestions"></datalist>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" id="cancelLinkBtn">Annuler</button>
+      <button class="btn btn-primary" id="confirmLinkBtn">Insérer le lien</button>
+    </div>
+  </div>
 </div>
 
 <!-- Aperçu -->
@@ -233,11 +258,93 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 });
 
 // ---- Éditeur simple (contenteditable) ----
-document.querySelectorAll(".toolbar button").forEach(btn => {
+document.querySelectorAll(".toolbar button[data-cmd]").forEach(btn => {
   btn.addEventListener("click", () => {
     document.getElementById("fBody").focus();
     document.execCommand(btn.dataset.cmd, false, btn.dataset.val || null);
   });
+});
+
+// Garde en mémoire où était le curseur dans l'éditeur, pour pouvoir y
+// insérer une photo ou un lien même après avoir ouvert le sélecteur
+// de fichiers ou la fenêtre de lien (qui font perdre le focus).
+let savedRange = null;
+function saveSelection() {
+  const sel = window.getSelection();
+  if (sel.rangeCount > 0 && document.getElementById("fBody").contains(sel.anchorNode)) {
+    savedRange = sel.getRangeAt(0).cloneRange();
+  }
+}
+function restoreSelection() {
+  const editor = document.getElementById("fBody");
+  editor.focus();
+  if (savedRange) {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedRange);
+  }
+}
+document.getElementById("fBody").addEventListener("keyup", saveSelection);
+document.getElementById("fBody").addEventListener("mouseup", saveSelection);
+
+// ---- Insertion d'une photo dans le texte de l'article ----
+const inlineImageInput = document.getElementById("inlineImageInput");
+document.getElementById("insertImageBtn").addEventListener("click", () => {
+  saveSelection();
+  inlineImageInput.click();
+});
+inlineImageInput.addEventListener("change", async () => {
+  const file = inlineImageInput.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById("publishStatus");
+
+  try {
+    const ext = (file.type || "image/jpeg").split("/")[1] || "jpg";
+    const filename = `images/articles/inline-${Date.now()}.${ext}`;
+    const reader = new FileReader();
+    const base64 = await new Promise((resolve, reject) => {
+      reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    statusEl.className = "status-msg";
+    statusEl.textContent = "Ajout de la photo…";
+    await putFile(filename, base64, null, "Ajout d'une photo dans un article");
+
+    restoreSelection();
+    document.execCommand("insertHTML", false, `<img src="${filename}" alt="" style="max-width:100%;border-radius:10px;margin:14px 0;">`);
+    statusEl.textContent = "";
+  } catch (err) {
+    statusEl.className = "status-msg error";
+    statusEl.textContent = "Erreur lors de l'ajout de la photo : " + err.message;
+  }
+  inlineImageInput.value = "";
+});
+
+// ---- Insertion d'un lien (externe ou vers un article publié) ----
+const linkOverlay = document.getElementById("linkOverlay");
+document.getElementById("insertLinkBtn").addEventListener("click", () => {
+  saveSelection();
+  const suggestions = document.getElementById("linkSuggestions");
+  suggestions.innerHTML = articles.map(a => `<option value="article.html?p=${a.slug}">${a.title}</option>`).join("");
+  document.getElementById("linkUrlInput").value = "";
+  linkOverlay.style.display = "flex";
+});
+document.getElementById("cancelLinkBtn").addEventListener("click", () => {
+  linkOverlay.style.display = "none";
+});
+document.getElementById("confirmLinkBtn").addEventListener("click", () => {
+  const url = document.getElementById("linkUrlInput").value.trim();
+  linkOverlay.style.display = "none";
+  if (!url) return;
+  restoreSelection();
+  if (window.getSelection().isCollapsed) {
+    // Rien n'était sélectionné — insère le lien lui-même comme texte cliquable.
+    document.execCommand("insertHTML", false, `<a href="${url}">${url}</a>`);
+  } else {
+    document.execCommand("createLink", false, url);
+  }
 });
 
 // ---- Photo ----
