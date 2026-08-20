@@ -3,195 +3,501 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Émilia — Courtière immobilière | Résidentiel, Commercial & RPA/RI</title>
-<meta name="description" content="Chroniques et analyses de marché par une courtière immobilière spécialisée en résidentiel, commercial et résidences pour aînés (RPA/RI) dans la grande région de Montréal.">
-<link rel="stylesheet" href="style.css">
+<meta name="robots" content="noindex">
+<title>Admin — Blogue Émilia</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  body { background: var(--canvas); }
+  .admin-wrap { max-width: 760px; margin: 0 auto; padding: 32px 20px 80px; }
+  .admin-title { font-family: var(--font-display); font-size: 1.8rem; margin: 0 0 6px; }
+  .admin-sub { color: var(--muted); margin: 0 0 32px; }
+
+  .login-card {
+    background: var(--paper); border-radius: var(--radius); padding: 40px;
+    text-align: center; box-shadow: var(--shadow-md); margin-top: 60px;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-body); font-weight: 600; font-size: 0.95rem;
+    padding: 12px 22px; border-radius: 10px; border: none; cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--navy); color: #fff; box-shadow: var(--shadow-sm); }
+  .btn-secondary { background: var(--paper); color: var(--ink); border: 1px solid rgba(20,24,28,0.12); }
+  .btn-danger { background: #fdece7; color: #b8371f; border: none; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .field { margin-bottom: 22px; }
+  .field label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+  .field .hint { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+  .field input[type="text"], .field textarea, .field input[type="date"] {
+    width: 100%; font-family: var(--font-body); font-size: 0.95rem;
+    padding: 11px 14px; border: 1px solid rgba(20,24,28,0.12); border-radius: 10px;
+    background: var(--paper);
+  }
+  .field textarea { min-height: 70px; resize: vertical; }
+  .field input:focus, .field textarea:focus, .editor:focus {
+    outline: none; border-color: var(--coral); box-shadow: 0 0 0 3px var(--coral-soft);
+  }
+
+  .photo-drop {
+    border: 2px dashed rgba(20,24,28,0.15); border-radius: 12px; padding: 24px;
+    text-align: center; cursor: pointer; background: var(--paper);
+  }
+  .photo-drop img { max-height: 160px; border-radius: 8px; margin: 0 auto 10px; }
+  .photo-drop span { color: var(--muted); font-size: 0.9rem; }
+
+  .toolbar { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .toolbar button {
+    font-family: var(--font-body); font-size: 0.85rem; font-weight: 600;
+    padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(20,24,28,0.12);
+    background: var(--paper); cursor: pointer;
+  }
+  .toolbar button:hover { background: var(--canvas); }
+  .editor {
+    min-height: 220px; padding: 14px 16px; border: 1px solid rgba(20,24,28,0.12);
+    border-radius: 10px; background: var(--paper); font-size: 0.98rem; line-height: 1.6;
+  }
+  .editor h2 { font-family: var(--font-display); font-size: 1.3rem; }
+
+  .form-card {
+    background: var(--paper); border-radius: var(--radius); padding: 30px;
+    box-shadow: var(--shadow-md); margin-bottom: 32px;
+  }
+  .form-actions { display: flex; gap: 12px; margin-top: 8px; }
+
+  .preview-overlay {
+    position: fixed; inset: 0; background: rgba(20,24,28,0.5); z-index: 100;
+    display: flex; align-items: flex-start; justify-content: center; padding: 30px 16px;
+    overflow-y: auto;
+  }
+  .preview-panel {
+    background: var(--paper); border-radius: var(--radius); max-width: 720px;
+    width: 100%; padding: 36px; box-shadow: var(--shadow-lg);
+  }
+  .preview-close { text-align: right; margin-bottom: 10px; }
+
+  .existing-list { display: flex; flex-direction: column; gap: 10px; }
+  .existing-item {
+    display: flex; align-items: center; gap: 14px; background: var(--paper);
+    border-radius: 10px; padding: 12px 14px; box-shadow: var(--shadow-sm);
+  }
+  .existing-item img { width: 52px; height: 52px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+  .existing-item__title { font-weight: 600; font-size: 0.92rem; margin: 0 0 2px; }
+  .existing-item__meta { font-size: 0.78rem; color: var(--muted); }
+  .existing-item__actions { margin-left: auto; display: flex; gap: 8px; }
+  .existing-item__actions button { font-size: 0.8rem; padding: 6px 10px; }
+
+  .status-msg { font-size: 0.9rem; margin-top: 10px; }
+  .status-msg.error { color: #b8371f; }
+  .status-msg.success { color: #2c6e49; }
+
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+</style>
 </head>
 <body>
 
-<header class="site-header">
-  <div class="site-header__inner">
-    <a href="index.html" class="logo">Émilia<span>.</span></a>
-    <nav class="main-nav" aria-label="Navigation principale">
-      <a href="#" aria-current="page">Blogue</a>
-      <a href="#">Résidentiel</a>
-      <a href="#">Commercial</a>
-      <a href="#">RPA / RI</a>
-      <a href="#">Contact</a>
-    </nav>
-    <button class="nav-toggle" aria-label="Ouvrir le menu">☰</button>
-  </div>
-</header>
+<div class="admin-wrap">
 
-<div class="blog-hero">
-  <div class="blog-hero__inner">
-    <span class="blog-hero__eyebrow">Le blogue</span>
-    <h1>Chroniques immobilières</h1>
-    <p>Analyses de marché, évaluations et dossiers réglementaires — pour acheteurs, vendeurs et exploitants avertis.</p>
+  <!-- Écran de connexion -->
+  <div id="loginScreen" class="login-card" style="display:none;">
+    <p style="font-family: var(--font-display); font-size: 1.4rem; margin-bottom: 8px;">Panneau de publication</p>
+    <p class="admin-sub">Connecte-toi avec ton compte GitHub pour publier un article.</p>
+    <button class="btn btn-primary" id="loginBtn">Se connecter avec GitHub</button>
+    <p class="status-msg error" id="loginError"></p>
+  </div>
+
+  <!-- Écran principal (une fois connecté) -->
+  <div id="mainScreen" style="display:none;">
+    <div class="top-bar">
+      <div>
+        <h1 class="admin-title">Publier un article</h1>
+        <p class="admin-sub" style="margin:0;">Connecté — <span id="userLabel"></span></p>
+      </div>
+      <button class="btn btn-secondary" id="logoutBtn">Se déconnecter</button>
+    </div>
+
+    <div class="form-card">
+      <div class="field">
+        <label for="fTitle">Titre de l'article</label>
+        <input type="text" id="fTitle" placeholder="Ex. Ce qu'il faut savoir avant de vendre en hiver">
+      </div>
+
+      <div class="field">
+        <label for="fCategory">Catégorie</label>
+        <input type="text" id="fCategory" list="categoryOptions" placeholder="Ex. Résidentiel — écris-en une nouvelle si besoin">
+        <datalist id="categoryOptions"></datalist>
+        <p class="hint">Écrire une catégorie qui n'existe pas encore la crée automatiquement.</p>
+      </div>
+
+      <div class="field">
+        <label for="fDescription">Description courte</label>
+        <textarea id="fDescription" placeholder="1 à 2 phrases — apparaît dans la grille et pour Google"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="fKeywords">Mots-clés SEO</label>
+        <input type="text" id="fKeywords" placeholder="Séparés par des virgules">
+      </div>
+
+      <div class="field">
+        <label>Photo principale</label>
+        <div class="photo-drop" id="photoDrop">
+          <img id="photoPreview" style="display:none;">
+          <span id="photoDropLabel">Touche pour choisir une photo depuis ton téléphone</span>
+        </div>
+        <input type="file" id="fPhoto" accept="image/*" style="display:none;">
+      </div>
+
+      <div class="field">
+        <label for="fPhotoAlt">Texte alternatif de la photo</label>
+        <input type="text" id="fPhotoAlt" placeholder="Décris la photo en quelques mots">
+      </div>
+
+      <div class="field">
+        <label>Contenu de l'article</label>
+        <div class="toolbar">
+          <button type="button" data-cmd="bold"><b>G</b></button>
+          <button type="button" data-cmd="italic"><i>I</i></button>
+          <button type="button" data-cmd="formatBlock" data-val="h2">Titre</button>
+          <button type="button" data-cmd="formatBlock" data-val="p">Texte</button>
+          <button type="button" data-cmd="insertUnorderedList">Liste</button>
+        </div>
+        <div class="editor" id="fBody" contenteditable="true"></div>
+        <p class="hint">Éditeur simple — sélectionne du texte puis clique un bouton pour le mettre en forme.</p>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" id="previewBtn">Prévisualiser</button>
+        <button class="btn btn-primary" id="publishBtn">Publier</button>
+      </div>
+      <p class="status-msg" id="publishStatus"></p>
+    </div>
+
+    <h2 class="admin-title" style="font-size:1.3rem;">Articles publiés</h2>
+    <div class="existing-list" id="existingList"></div>
+  </div>
+
+</div>
+
+<!-- Aperçu -->
+<div class="preview-overlay" id="previewOverlay" style="display:none;">
+  <div class="preview-panel">
+    <div class="preview-close"><button class="btn btn-secondary" id="closePreview">Fermer l'aperçu</button></div>
+    <div class="article-header">
+      <span class="tag" id="pvTag"></span>
+      <h1 id="pvTitle"></h1>
+      <div class="article-meta" id="pvMeta"></div>
+    </div>
+    <img class="article-hero" id="pvPhoto">
+    <div class="article-body" id="pvBody"></div>
   </div>
 </div>
 
-<main class="page">
-  <aside class="sidebar">
-    <div class="sidebar__label">Filtrer</div>
-    <select class="sidebar__select" id="categoryFilter" aria-label="Filtrer par catégorie">
-      <option value="all">Toutes les catégories</option>
-    </select>
-
-    <div class="search-box">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="keywordSearch" placeholder="Rechercher par mot-clé…" aria-label="Rechercher par mot-clé">
-    </div>
-
-    <div class="sidebar__label">Catégories</div>
-    <ul class="sidebar__list" id="categoryList">
-      <li><a href="#" class="active" data-cat="all">Tous les articles</a></li>
-    </ul>
-  </aside>
-
-  <section>
-    <!-- Module vedette — généré automatiquement à partir du premier article -->
-    <div id="featuredSection"></div>
-
-    <h2 class="section-heading">Autres articles</h2>
-    <div class="article-grid" id="articleGrid"></div>
-    <p class="no-results" id="noResults" style="display:none;">Aucun article ne correspond à ta recherche.</p>
-  </section>
-</main>
-
-<footer class="site-footer">
-  <div class="site-footer__inner">
-    <div class="site-footer__brand">
-      <img src="images/sutton-logo.png" alt="Sutton" class="site-footer__logo">
-      <span>© 2026 Émilia Chourot — Courtier immobilier résidentiel et commercial, Groupe Sutton Actuel Inc.</span>
-    </div>
-    <nav aria-label="Navigation de pied de page">
-      <a href="#">Contact</a> · <a href="#">À propos</a> · <a href="https://www.suttonquebec.com/" target="_blank" rel="noopener">Sutton Québec</a>
-    </nav>
-  </div>
-</footer>
-
-<script src="articles.js"></script>
+<script src="../articles.js"></script>
 <script>
-const grid = document.getElementById("articleGrid");
-const featuredSection = document.getElementById("featuredSection");
-const noResults = document.getElementById("noResults");
-const categoryFilter = document.getElementById("categoryFilter");
-const keywordSearch = document.getElementById("keywordSearch");
-const categoryListEl = document.getElementById("categoryList");
+// ---- Configuration du dépôt ----
+const REPO_OWNER = "emiliachourot-create";
+const REPO_NAME = "blogue-emilia";
+const REPO_BRANCH = "main";
 
-// Génère le menu déroulant et la liste de catégories dans la sidebar
-// à partir des catégories réellement utilisées dans les articles.
-// Ajouter/retirer une catégorie se fait simplement en l'utilisant (ou
-// non) sur un article — rien à configurer ailleurs.
-function populateCategories() {
-  const cats = getCategories();
+let token = sessionStorage.getItem("gh_token");
+let editingSlug = null; // si on modifie un article existant plutôt que d'en créer un
 
-  categoryFilter.innerHTML = `<option value="all">Toutes les catégories</option>` +
-    cats.map(c => `<option value="${c}">${c}</option>`).join("");
+const loginScreen = document.getElementById("loginScreen");
+const mainScreen = document.getElementById("mainScreen");
 
-  categoryListEl.innerHTML = `<li><a href="#" class="active" data-cat="all">Tous les articles</a></li>` +
-    cats.map(c => `<li><a href="#" data-cat="${c}">${c}</a></li>`).join("");
+function ghHeaders() {
+  return {
+    "Authorization": "token " + token,
+    "Accept": "application/vnd.github+json"
+  };
 }
 
-function renderFeatured(list) {
-  if (list.length === 0) { featuredSection.innerHTML = ""; return; }
-  const featured = list[0];
-  const rail = list.slice(1, 3);
+// ---- Connexion GitHub (ouvre une popup vers /api/auth) ----
+document.getElementById("loginBtn").addEventListener("click", () => {
+  const popup = window.open("/api/auth", "gh-auth", "width=600,height=700");
+  window.addEventListener("message", function handler(e) {
+    if (typeof e.data !== "string" || !e.data.startsWith("authorization:github:success:")) return;
+    const payload = JSON.parse(e.data.replace("authorization:github:success:", ""));
+    token = payload.token;
+    sessionStorage.setItem("gh_token", token);
+    window.removeEventListener("message", handler);
+    popup.close();
+    init();
+  });
+});
 
-  featuredSection.innerHTML = `
-    <div class="featured-section">
-      <a href="article.html?p=${featured.slug}" class="featured-card">
-        <div class="featured-card__photo"><img src="${featured.photo}" alt="${featured.photoAlt || featured.title}"></div>
-        <div class="featured-card__body">
-          <span class="tag" style="${tagStyle(featured.category)}">${featured.category}</span>
-          <h2 class="featured-card__title">${featured.title}</h2>
-          <p class="featured-card__desc">${featured.description}</p>
-        </div>
-      </a>
-      <div class="featured-rail">
-        ${rail.map(a => `
-          <a href="article.html?p=${a.slug}" class="rail-item">
-            <div class="rail-item__photo"><img src="${a.photo}" alt="${a.photoAlt || a.title}"></div>
-            <div>
-              <span class="tag" style="${tagStyle(a.category)}margin-bottom:4px;">${a.category}</span>
-              <h3 class="rail-item__title">${a.title}</h3>
-              <p class="rail-item__desc">${a.description}</p>
-            </div>
-          </a>
-        `).join("")}
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  sessionStorage.removeItem("gh_token");
+  token = null;
+  location.reload();
+});
+
+// ---- Éditeur simple (contenteditable) ----
+document.querySelectorAll(".toolbar button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.getElementById("fBody").focus();
+    document.execCommand(btn.dataset.cmd, false, btn.dataset.val || null);
+  });
+});
+
+// ---- Photo ----
+const photoDrop = document.getElementById("photoDrop");
+const fPhoto = document.getElementById("fPhoto");
+let photoBase64 = null;
+let photoMimeType = null;
+
+photoDrop.addEventListener("click", () => fPhoto.click());
+fPhoto.addEventListener("change", () => {
+  const file = fPhoto.files[0];
+  if (!file) return;
+  photoMimeType = file.type;
+  const reader = new FileReader();
+  reader.onload = () => {
+    photoBase64 = reader.result.split(",")[1];
+    document.getElementById("photoPreview").src = reader.result;
+    document.getElementById("photoPreview").style.display = "block";
+    document.getElementById("photoDropLabel").textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+});
+
+// ---- Prévisualisation ----
+document.getElementById("previewBtn").addEventListener("click", () => {
+  const title = document.getElementById("fTitle").value || "(sans titre)";
+  const category = document.getElementById("fCategory").value || "Non classé";
+  const body = document.getElementById("fBody").innerHTML || "<p>(contenu vide)</p>";
+  const photoSrc = document.getElementById("photoPreview").src || "";
+
+  document.getElementById("pvTag").textContent = category;
+  document.getElementById("pvTag").setAttribute("style", tagStyle(category));
+  document.getElementById("pvTitle").textContent = title;
+  document.getElementById("pvMeta").textContent = "Aperçu — pas encore publié";
+  document.getElementById("pvPhoto").src = photoSrc;
+  document.getElementById("pvPhoto").style.display = photoSrc ? "block" : "none";
+  document.getElementById("pvBody").innerHTML = body;
+
+  document.getElementById("previewOverlay").style.display = "flex";
+});
+document.getElementById("closePreview").addEventListener("click", () => {
+  document.getElementById("previewOverlay").style.display = "none";
+});
+
+// ---- Appels API GitHub (lire/écrire un fichier du dépôt) ----
+async function getFile(path) {
+  const res = await fetch(
+    `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}?ref=${REPO_BRANCH}`,
+    { headers: ghHeaders() }
+  );
+  if (!res.ok) throw new Error(`Impossible de lire ${path} (${res.status})`);
+  return res.json();
+}
+
+async function putFile(path, contentBase64, sha, message) {
+  const body = { message, content: contentBase64, branch: REPO_BRANCH };
+  if (sha) body.sha = sha;
+  const res = await fetch(
+    `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`,
+    { method: "PUT", headers: { ...ghHeaders(), "Content-Type": "application/json" }, body: JSON.stringify(body) }
+  );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Échec de l'écriture de ${path} (${res.status})`);
+  }
+  return res.json();
+}
+
+function utf8ToBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+function base64ToUtf8(str) {
+  return decodeURIComponent(escape(atob(str)));
+}
+
+// ---- Publication ----
+document.getElementById("publishBtn").addEventListener("click", async () => {
+  const statusEl = document.getElementById("publishStatus");
+  statusEl.className = "status-msg";
+  statusEl.textContent = "";
+
+  const title = document.getElementById("fTitle").value.trim();
+  const category = document.getElementById("fCategory").value.trim();
+  const description = document.getElementById("fDescription").value.trim();
+  const keywords = document.getElementById("fKeywords").value.trim();
+  const photoAlt = document.getElementById("fPhotoAlt").value.trim();
+  const body = document.getElementById("fBody").innerHTML.trim();
+
+  if (!title || !category || !description || !body) {
+    statusEl.className = "status-msg error";
+    statusEl.textContent = "Merci de remplir au minimum le titre, la catégorie, la description et le contenu.";
+    return;
+  }
+
+  document.getElementById("publishBtn").disabled = true;
+  statusEl.textContent = "Publication en cours…";
+
+  try {
+    let photoPath = null;
+
+    // 1. Upload de la photo si une nouvelle a été choisie
+    if (photoBase64) {
+      const ext = (photoMimeType || "image/jpeg").split("/")[1] || "jpg";
+      const slugForPhoto = editingSlug || slugify(title) || ("article-" + Date.now());
+      photoPath = `images/articles/${slugForPhoto}.${ext}`;
+      await putFile(photoPath, photoBase64, null, `Ajout photo: ${title}`);
+    }
+
+    // 2. Lire articles.json actuel (sha nécessaire pour la mise à jour)
+    const current = await getFile("articles.json");
+    const currentArticles = JSON.parse(base64ToUtf8(current.content));
+
+    const wordCount = document.getElementById("fBody").innerText.trim().split(/\s+/).length;
+    const readTime = Math.max(1, Math.round(wordCount / 200)) + " min de lecture";
+    const today = new Date().toLocaleDateString("fr-CA", { day: "numeric", month: "long", year: "numeric" });
+
+    const newEntry = {
+      slug: editingSlug || slugify(title) || ("article-" + Date.now()),
+      category,
+      title,
+      description,
+      keywords,
+      photo: photoPath || (editingSlug ? currentArticles.find(a => a.slug === editingSlug)?.photo : "") || "",
+      photoAlt: photoAlt || title,
+      date: editingSlug ? currentArticles.find(a => a.slug === editingSlug)?.date || today : today,
+      readTime,
+      body
+    };
+
+    let updatedArticles;
+    if (editingSlug) {
+      updatedArticles = currentArticles.map(a => a.slug === editingSlug ? newEntry : a);
+    } else {
+      // Le nouvel article passe en premier — il devient automatiquement
+      // l'article vedette sur la page du blogue.
+      updatedArticles = [newEntry, ...currentArticles];
+    }
+
+    await putFile(
+      "articles.json",
+      utf8ToBase64(JSON.stringify(updatedArticles, null, 2)),
+      current.sha,
+      editingSlug ? `Modifier article: ${title}` : `Publier article: ${title}`
+    );
+
+    statusEl.className = "status-msg success";
+    statusEl.textContent = "Publié ! Le site se met à jour automatiquement — ça prend environ une minute.";
+    resetForm();
+    loadExisting();
+  } catch (err) {
+    statusEl.className = "status-msg error";
+    statusEl.textContent = "Erreur : " + err.message;
+  } finally {
+    document.getElementById("publishBtn").disabled = false;
+  }
+});
+
+function resetForm() {
+  editingSlug = null;
+  document.getElementById("fTitle").value = "";
+  document.getElementById("fCategory").value = "";
+  document.getElementById("fDescription").value = "";
+  document.getElementById("fKeywords").value = "";
+  document.getElementById("fPhotoAlt").value = "";
+  document.getElementById("fBody").innerHTML = "";
+  document.getElementById("photoPreview").style.display = "none";
+  document.getElementById("photoDropLabel").textContent = "Touche pour choisir une photo depuis ton téléphone";
+  photoBase64 = null;
+}
+
+// ---- Liste des articles existants (modifier / supprimer) ----
+async function loadExisting() {
+  await loadArticles("../"); // depuis /admin/, articles.json est un niveau plus haut
+  const list = document.getElementById("existingList");
+  const catOptions = document.getElementById("categoryOptions");
+  catOptions.innerHTML = getCategories().map(c => `<option value="${c}">`).join("");
+
+  list.innerHTML = articles.map(a => `
+    <div class="existing-item">
+      <img src="${a.photo}" alt="">
+      <div>
+        <p class="existing-item__title">${a.title}</p>
+        <p class="existing-item__meta">${a.category} · ${a.date}</p>
+      </div>
+      <div class="existing-item__actions">
+        <button class="btn btn-secondary" data-edit="${a.slug}">Modifier</button>
+        <button class="btn btn-danger" data-delete="${a.slug}">Supprimer</button>
       </div>
     </div>
-  `;
-}
-
-function renderGrid(list) {
-  const rest = list.slice(1); // le premier est déjà dans le module vedette
-  if (rest.length === 0) {
-    grid.innerHTML = "";
-    noResults.style.display = list.length === 0 ? "block" : "none";
-    return;
-  }
-  noResults.style.display = "none";
-  grid.innerHTML = rest.map(a => `
-    <a href="article.html?p=${a.slug}" class="article-card">
-      <div class="article-card__photo"><img src="${a.photo}" alt="${a.photoAlt || a.title}"></div>
-      <div class="article-card__body">
-        <span class="tag" style="${tagStyle(a.category)}">${a.category}</span>
-        <h3 class="article-card__title">${a.title}</h3>
-        <p class="article-card__desc">${a.description}</p>
-      </div>
-    </a>
   `).join("");
+
+  list.querySelectorAll("[data-edit]").forEach(btn => {
+    btn.addEventListener("click", () => loadIntoForm(btn.dataset.edit));
+  });
+  list.querySelectorAll("[data-delete]").forEach(btn => {
+    btn.addEventListener("click", () => deleteArticle(btn.dataset.delete));
+  });
 }
 
-function applyFilters() {
-  const cat = categoryFilter.value;
-  const kw = keywordSearch.value.trim().toLowerCase();
+function loadIntoForm(slug) {
+  const a = articles.find(x => x.slug === slug);
+  if (!a) return;
+  editingSlug = slug;
+  document.getElementById("fTitle").value = a.title;
+  document.getElementById("fCategory").value = a.category;
+  document.getElementById("fDescription").value = a.description;
+  document.getElementById("fKeywords").value = a.keywords || "";
+  document.getElementById("fPhotoAlt").value = a.photoAlt || "";
+  document.getElementById("fBody").innerHTML = a.body;
+  document.getElementById("photoPreview").src = a.photo;
+  document.getElementById("photoPreview").style.display = "block";
+  document.getElementById("photoDropLabel").textContent = "Photo actuelle — touche pour la remplacer";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
-  const filtered = articles.filter(a => {
-    const matchesCat = cat === "all" || a.category === cat;
-    const haystack = (a.title + " " + a.description + " " + a.keywords).toLowerCase();
-    const matchesKw = kw === "" || haystack.includes(kw);
-    return matchesCat && matchesKw;
-  });
+async function deleteArticle(slug) {
+  if (!confirm("Supprimer définitivement cet article ?")) return;
+  try {
+    const current = await getFile("articles.json");
+    const currentArticles = JSON.parse(base64ToUtf8(current.content));
+    const updated = currentArticles.filter(a => a.slug !== slug);
+    await putFile(
+      "articles.json",
+      utf8ToBase64(JSON.stringify(updated, null, 2)),
+      current.sha,
+      `Supprimer article: ${slug}`
+    );
+    loadExisting();
+  } catch (err) {
+    alert("Erreur lors de la suppression : " + err.message);
+  }
+}
 
-  if (filtered.length === 0) {
-    featuredSection.innerHTML = "";
-    grid.innerHTML = "";
-    noResults.style.display = "block";
+// ---- Démarrage ----
+async function init() {
+  if (!token) {
+    loginScreen.style.display = "block";
+    mainScreen.style.display = "none";
     return;
   }
-
-  renderFeatured(filtered);
-  renderGrid(filtered);
+  try {
+    const res = await fetch("https://api.github.com/user", { headers: ghHeaders() });
+    if (!res.ok) throw new Error("session expirée");
+    const user = await res.json();
+    document.getElementById("userLabel").textContent = user.login;
+    loginScreen.style.display = "none";
+    mainScreen.style.display = "block";
+    loadExisting();
+  } catch {
+    sessionStorage.removeItem("gh_token");
+    token = null;
+    loginScreen.style.display = "block";
+    mainScreen.style.display = "none";
+    document.getElementById("loginError").textContent = "Session expirée, reconnecte-toi.";
+  }
 }
 
-categoryFilter.addEventListener("change", () => {
-  applyFilters();
-  categoryListEl.querySelectorAll("a").forEach(l =>
-    l.classList.toggle("active", l.dataset.cat === categoryFilter.value)
-  );
-});
-
-keywordSearch.addEventListener("input", applyFilters);
-
-categoryListEl.addEventListener("click", (e) => {
-  const link = e.target.closest("a");
-  if (!link) return;
-  e.preventDefault();
-  categoryFilter.value = link.dataset.cat;
-  categoryListEl.querySelectorAll("a").forEach(l => l.classList.remove("active"));
-  link.classList.add("active");
-  applyFilters();
-});
-
-// Rendu initial — attend que les données soient chargées
-loadArticles().then(() => {
-  populateCategories();
-  renderFeatured(articles);
-  renderGrid(articles);
-});
+init();
 </script>
 
 </body>
