@@ -214,19 +214,17 @@ function ghHeaders() {
   };
 }
 
-// ---- Connexion GitHub (ouvre une popup vers /api/auth) ----
+// ---- Connexion GitHub (navigue directement vers /api/auth, revient ici avec le jeton) ----
 document.getElementById("loginBtn").addEventListener("click", () => {
-  const popup = window.open("/api/auth", "gh-auth", "width=600,height=700");
-  window.addEventListener("message", function handler(e) {
-    if (typeof e.data !== "string" || !e.data.startsWith("authorization:github:success:")) return;
-    const payload = JSON.parse(e.data.replace("authorization:github:success:", ""));
-    token = payload.token;
-    sessionStorage.setItem("gh_token", token);
-    window.removeEventListener("message", handler);
-    popup.close();
-    init();
-  });
+  window.location.href = "/api/auth";
 });
+
+// Si on revient tout juste de GitHub, le jeton est dans l'URL (#gh_token=...)
+if (window.location.hash.startsWith("#gh_token=")) {
+  token = window.location.hash.replace("#gh_token=", "");
+  sessionStorage.setItem("gh_token", token);
+  history.replaceState(null, "", window.location.pathname); // nettoie l'URL
+}
 
 document.getElementById("logoutBtn").addEventListener("click", () => {
   sessionStorage.removeItem("gh_token");
