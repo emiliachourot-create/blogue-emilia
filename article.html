@@ -82,7 +82,23 @@ loadArticles().then(() => {
     </div>
     <img class="article-hero" src="${article.photo}" alt="${article.photoAlt || article.title}">
     <div class="article-body">${article.body}</div>
+    <div class="share-row">
+      <span class="share-row__label">Partager :</span>
+      <a class="share-btn" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(location.href)}">Facebook</a>
+      <a class="share-btn" target="_blank" rel="noopener" href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(location.href)}">LinkedIn</a>
+      <a class="share-btn" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(article.title)}">X</a>
+      <button class="share-btn" id="copyLinkBtn" type="button">Copier le lien</button>
+    </div>
   `;
+
+  document.getElementById("copyLinkBtn").addEventListener("click", () => {
+    navigator.clipboard.writeText(location.href).then(() => {
+      const btn = document.getElementById("copyLinkBtn");
+      const original = btn.textContent;
+      btn.textContent = "Lien copié !";
+      setTimeout(() => { btn.textContent = original; }, 1800);
+    });
+  });
 });
 </script>
 
