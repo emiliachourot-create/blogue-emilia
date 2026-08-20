@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Émilia — Courtière immobilière | Résidentiel, Commercial & RPA/RI</title>
+<meta name="description" content="Chroniques et analyses de marché par une courtière immobilière spécialisée en résidentiel, commercial et résidences pour aînés (RPA/RI) dans la grande région de Montréal.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header__inner">
+    <a href="index.html" class="logo">Émilia<span>.</span></a>
+    <nav class="main-nav" aria-label="Navigation principale">
+      <a href="#" aria-current="page">Blogue</a>
+      <a href="#">Résidentiel</a>
+      <a href="#">Commercial</a>
+      <a href="#">RPA / RI</a>
+      <a href="#">Contact</a>
+    </nav>
+    <button class="nav-toggle" aria-label="Ouvrir le menu">☰</button>
+  </div>
+</header>
+
+<div class="blog-hero">
+  <div class="blog-hero__inner">
+    <span class="blog-hero__eyebrow">Le blogue</span>
+    <h1>Chroniques immobilières</h1>
+    <p>Analyses de marché, évaluations et dossiers réglementaires — pour acheteurs, vendeurs et exploitants avertis.</p>
+  </div>
+</div>
+
+<main class="page">
+  <aside class="sidebar">
+    <div class="sidebar__label">Filtrer</div>
+    <select class="sidebar__select" id="categoryFilter" aria-label="Filtrer par catégorie">
+      <option value="all">Toutes les catégories</option>
+    </select>
+
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="keywordSearch" placeholder="Rechercher par mot-clé…" aria-label="Rechercher par mot-clé">
+    </div>
+
+    <div class="sidebar__label">Catégories</div>
+    <ul class="sidebar__list" id="categoryList">
+      <li><a href="#" class="active" data-cat="all">Tous les articles</a></li>
+    </ul>
+  </aside>
+
+  <section>
+    <!-- Module vedette — généré automatiquement à partir du premier article -->
+    <div id="featuredSection"></div>
+
+    <h2 class="section-heading">Autres articles</h2>
+    <div class="article-grid" id="articleGrid"></div>
+    <p class="no-results" id="noResults" style="display:none;">Aucun article ne correspond à ta recherche.</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__brand">
+      <img src="images/sutton-logo.png" alt="Sutton" class="site-footer__logo">
+      <span>© 2026 Émilia Chourot — Courtier immobilier résidentiel et commercial, Groupe Sutton Actuel Inc.</span>
+    </div>
+    <nav aria-label="Navigation de pied de page">
+      <a href="#">Contact</a> · <a href="#">À propos</a> · <a href="https://www.suttonquebec.com/" target="_blank" rel="noopener">Sutton Québec</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="articles.js"></script>
+<script>
+const grid = document.getElementById("articleGrid");
+const featuredSection = document.getElementById("featuredSection");
+const noResults = document.getElementById("noResults");
+const categoryFilter = document.getElementById("categoryFilter");
+const keywordSearch = document.getElementById("keywordSearch");
+const categoryListEl = document.getElementById("categoryList");
+
+// Génère le menu déroulant et la liste de catégories dans la sidebar
+// à partir des catégories réellement utilisées dans les articles.
+// Ajouter/retirer une catégorie se fait simplement en l'utilisant (ou
+// non) sur un article — rien à configurer ailleurs.
+function populateCategories() {
+  const cats = getCategories();
+
+  categoryFilter.innerHTML = `<option value="all">Toutes les catégories</option>` +
+    cats.map(c => `<option value="${c}">${c}</option>`).join("");
+
+  categoryListEl.innerHTML = `<li><a href="#" class="active" data-cat="all">Tous les articles</a></li>` +
+    cats.map(c => `<li><a href="#" data-cat="${c}">${c}</a></li>`).join("");
+}
+
+function renderFeatured(list) {
+  if (list.length === 0) { featuredSection.innerHTML = ""; return; }
+  const featured = list[0];
+  const rail = list.slice(1, 3);
+
+  featuredSection.innerHTML = `
+    <div class="featured-section">
+      <a href="article.html?p=${featured.slug}" class="featured-card">
+        <div class="featured-card__photo"><img src="${featured.photo}" alt="${featured.title}"></div>
+        <div class="featured-card__body">
+          <span class="tag" style="${tagStyle(featured.category)}">${featured.category}</span>
+          <h2 class="featured-card__title">${featured.title}</h2>
+          <p class="featured-card__desc">${featured.description}</p>
+        </div>
+      </a>
+      <div class="featured-rail">
+        ${rail.map(a => `
+          <a href="article.html?p=${a.slug}" class="rail-item">
+            <div class="rail-item__photo"><img src="${a.photo}" alt="${a.title}"></div>
+            <div>
+              <span class="tag" style="${tagStyle(a.category)}margin-bottom:4px;">${a.category}</span>
+              <h3 class="rail-item__title">${a.title}</h3>
+              <p class="rail-item__desc">${a.description}</p>
+            </div>
+          </a>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderGrid(list) {
+  const rest = list.slice(1); // le premier est déjà dans le module vedette
+  if (rest.length === 0) {
+    grid.innerHTML = "";
+    noResults.style.display = list.length === 0 ? "block" : "none";
+    return;
+  }
+  noResults.style.display = "none";
+  grid.innerHTML = rest.map(a => `
+    <a href="article.html?p=${a.slug}" class="article-card">
+      <div class="article-card__photo"><img src="${a.photo}" alt="${a.title}"></div>
+      <div class="article-card__body">
+        <span class="tag" style="${tagStyle(a.category)}">${a.category}</span>
+        <h3 class="article-card__title">${a.title}</h3>
+        <p class="article-card__desc">${a.description}</p>
+      </div>
+    </a>
+  `).join("");
+}
+
+function applyFilters() {
+  const cat = categoryFilter.value;
+  const kw = keywordSearch.value.trim().toLowerCase();
+
+  const filtered = articles.filter(a => {
+    const matchesCat = cat === "all" || a.category === cat;
+    const haystack = (a.title + " " + a.description + " " + a.keywords).toLowerCase();
+    const matchesKw = kw === "" || haystack.includes(kw);
+    return matchesCat && matchesKw;
+  });
+
+  if (filtered.length === 0) {
+    featuredSection.innerHTML = "";
+    grid.innerHTML = "";
+    noResults.style.display = "block";
+    return;
+  }
+
+  renderFeatured(filtered);
+  renderGrid(filtered);
+}
+
+categoryFilter.addEventListener("change", () => {
+  applyFilters();
+  categoryListEl.querySelectorAll("a").forEach(l =>
+    l.classList.toggle("active", l.dataset.cat === categoryFilter.value)
+  );
+});
+
+keywordSearch.addEventListener("input", applyFilters);
+
+categoryListEl.addEventListener("click", (e) => {
+  const link = e.target.closest("a");
+  if (!link) return;
+  e.preventDefault();
+  categoryFilter.value = link.dataset.cat;
+  categoryListEl.querySelectorAll("a").forEach(l => l.classList.remove("active"));
+  link.classList.add("active");
+  applyFilters();
+});
+
+// Rendu initial
+populateCategories();
+renderFeatured(articles);
+renderGrid(articles);
+</script>
+
+</body>
+</html>
