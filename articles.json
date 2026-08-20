@@ -1,5 +1,17 @@
 [
   {
+    "slug": "l-immobilier-sur-papier-des-mots-pour-tester-mon-blogue",
+    "category": "Test",
+    "title": "L’immobilier sur papier; des mots pour tester mon blogue",
+    "description": "Rien de vraiment intéressant; du blabla pour tester mon site web",
+    "keywords": "rien, intéressant, internet",
+    "photo": "images/articles/l-immobilier-sur-papier-des-mots-pour-tester-mon-blogue.jpeg",
+    "photoAlt": "L’immobilier sur papier; des mots pour tester mon blogue",
+    "date": "20 août 2026",
+    "readTime": "1 min de lecture",
+    "body": "<h2>Un test pour mes articles;&nbsp;</h2><div>Des mots pour rien dire.&nbsp;</div><br><img src=\"images/articles/inline-1787269044643.jpeg\" alt=\"\" style=\"border-radius: 10px; margin: 14px 0px;\"><a href=\"https://blogue-emilia.vercel.app/article.html?p=evaluer-une-rpa-ebitda-normalise\">https://blogue-emilia.vercel.app/article.html?p=evaluer-une-rpa-ebitda-normalise</a>"
+  },
+  {
     "slug": "cite-ou-classe-comprendre-la-loi-sur-le-patrimoine",
     "category": "Historique",
     "title": "Cité ou Classé? Comprendre la loi sur le Patrimoine",
