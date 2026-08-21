@@ -32,6 +32,13 @@
       <li><a href="index.html">Commercial</a></li>
       <li><a href="index.html">RPA / RI</a></li>
     </ul>
+
+    <div class="sidebar-cta">
+      <span class="sidebar-cta__eyebrow">Une question ?</span>
+      <h4>Discutons de votre projet immobilier</h4>
+      <p>Résidentiel, commercial ou RPA/RI — je réponds personnellement.</p>
+      <a href="#">Me contacter</a>
+    </div>
   </aside>
 
   <article id="articleContent">
@@ -102,68 +109,105 @@ loadArticles().then(() => {
 });
 </script>
 
-<!-- Pop-up formulaire de contact -->
-<div class="contact-popup-overlay" id="contactPopupOverlay">
-  <div class="contact-popup">
-    <button class="contact-popup__close" id="contactPopupClose" aria-label="Fermer">✕</button>
-    <div class="contact-popup__eyebrow">Une question ?</div>
-    <h3>Discutons de votre projet immobilier</h3>
-    <p class="sub">Résidentiel, commercial ou RPA/RI — je réponds personnellement à chaque message.</p>
-    <form id="contactPopupForm">
-      <input type="text" id="cpName" placeholder="Votre nom" required>
-      <input type="email" id="cpEmail" placeholder="Votre courriel" required>
-      <input type="tel" id="cpPhone" placeholder="Téléphone (optionnel)">
-      <textarea id="cpMessage" placeholder="Votre message" required></textarea>
-      <button type="submit">Envoyer le message</button>
-    </form>
+<script>
+document.getElementById("navToggle").addEventListener("click", () => {
+  document.getElementById("mainNav").classList.toggle("open");
+});
+</script>
+
+<!-- Pop-up infolettre -->
+<div class="newsletter-overlay" id="newsletterOverlay">
+  <div class="newsletter-popup">
+    <button class="newsletter-popup__close" id="newsletterClose" aria-label="Fermer">✕</button>
+    <div class="newsletter-popup__photo">
+      <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=700&q=80" alt="">
+    </div>
+    <div class="newsletter-popup__content">
+      <span class="newsletter-popup__eyebrow">Infolettre</span>
+      <h3>Restez au courant des dernières actualités immobilières</h3>
+      <p class="sub">Analyses de marché, nouveaux articles et conseils — directement dans votre boîte courriel, sans spam.</p>
+      <form id="newsletterForm">
+        <input type="email" id="nlEmail" placeholder="Votre courriel" required>
+        <label class="newsletter-popup__consent">
+          <input type="checkbox" id="nlConsent" required>
+          <span>J'accepte de recevoir des courriels d'Émilia Chourot (Groupe Sutton Actuel Inc.) concernant l'actualité immobilière. Je peux me désabonner en tout temps.</span>
+        </label>
+        <button type="submit">S'inscrire</button>
+        <p class="newsletter-popup__status" id="newsletterStatus"></p>
+      </form>
+      <label class="newsletter-popup__dismiss">
+        <input type="checkbox" id="nlDismissForever">
+        Ne plus afficher ce message
+      </label>
+    </div>
   </div>
 </div>
 
 <script>
-// Courriel qui reçoit les messages — à remplacer par la vraie adresse d'Émilia.
-const CONTACT_EMAIL = "chourotemilia@hotmail.com";
+// URL du Google Apps Script (Web App) qui enregistre les inscriptions
+// dans la feuille Google Sheets — à remplacer une fois créée.
+const NEWSLETTER_WEBHOOK_URL = "URL_APPS_SCRIPT_A_REMPLACER";
 
 (function () {
-  const overlay = document.getElementById("contactPopupOverlay");
-  const closeBtn = document.getElementById("contactPopupClose");
-  const form = document.getElementById("contactPopupForm");
-  const SESSION_KEY = "contact_popup_shown";
+  const overlay = document.getElementById("newsletterOverlay");
+  const closeBtn = document.getElementById("newsletterClose");
+  const form = document.getElementById("newsletterForm");
+  const dismissForever = document.getElementById("nlDismissForever");
+  const statusEl = document.getElementById("newsletterStatus");
 
-  // Apparaît une seule fois par visite, après un court délai — jamais
-  // au chargement immédiat, et jamais répété si déjà vu cette session.
-  if (!sessionStorage.getItem(SESSION_KEY)) {
+  const FOREVER_KEY = "newsletter_popup_dismissed_forever";
+  const SESSION_KEY = "newsletter_popup_shown";
+
+  function maybeShow() {
+    if (localStorage.getItem(FOREVER_KEY)) return; // ne revient jamais si coché un jour
+    if (sessionStorage.getItem(SESSION_KEY)) return; // déjà vu cette visite
     setTimeout(() => {
       overlay.classList.add("visible");
       sessionStorage.setItem(SESSION_KEY, "1");
     }, 9000);
   }
+  maybeShow();
 
-  closeBtn.addEventListener("click", () => overlay.classList.remove("visible"));
+  function closePopup() {
+    if (dismissForever.checked) {
+      localStorage.setItem(FOREVER_KEY, "1");
+    }
+    overlay.classList.remove("visible");
+  }
+
+  closeBtn.addEventListener("click", closePopup);
   overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) overlay.classList.remove("visible");
+    if (e.target === overlay) closePopup();
   });
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const name = document.getElementById("cpName").value;
-    const email = document.getElementById("cpEmail").value;
-    const phone = document.getElementById("cpPhone").value;
-    const message = document.getElementById("cpMessage").value;
+    const email = document.getElementById("nlEmail").value;
 
-    const subject = encodeURIComponent(`Message du site — ${name}`);
-    const body = encodeURIComponent(
-      `Nom: ${name}\nCourriel: ${email}\nTéléphone: ${phone || "(non fourni)"}\n\nMessage:\n${message}`
-    );
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
-    overlay.classList.remove("visible");
+    statusEl.className = "newsletter-popup__status";
+    statusEl.textContent = "Inscription en cours…";
+
+    try {
+      await fetch(NEWSLETTER_WEBHOOK_URL, {
+        method: "POST",
+        mode: "no-cors", // Apps Script ne renvoie pas d'en-têtes CORS lisibles ; l'envoi fonctionne quand même.
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email,
+          consentement: true,
+          date: new Date().toISOString(),
+          page: window.location.href
+        })
+      });
+      statusEl.className = "newsletter-popup__status success";
+      statusEl.textContent = "Merci ! Vous êtes inscrit(e).";
+      setTimeout(closePopup, 1800);
+    } catch (err) {
+      statusEl.className = "newsletter-popup__status error";
+      statusEl.textContent = "Une erreur est survenue, réessayez plus tard.";
+    }
   });
 })();
-</script>
-
-<script>
-document.getElementById("navToggle").addEventListener("click", () => {
-  document.getElementById("mainNav").classList.toggle("open");
-});
 </script>
 
 </body>
