@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -540,7 +539,7 @@ async function loadExisting() {
     btn.addEventListener("click", () => loadIntoForm(btn.dataset.edit));
   });
   list.querySelectorAll("[data-delete]").forEach(btn => {
-    btn.addEventListener("click", () => deleteArticle(btn.dataset.delete));
+    btn.addEventListener("click", () => deleteArticle(btn.dataset.delete, btn));
   });
 }
 
@@ -560,21 +559,33 @@ function loadIntoForm(slug) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-async function deleteArticle(slug) {
+async function deleteArticle(slug, btn) {
   if (!confirm("Supprimer définitivement cet article ?")) return;
-  try {
-    const current = await getFile("articles.json");
-    const currentArticles = JSON.parse(base64ToUtf8(current.content));
-    const updated = currentArticles.filter(a => a.slug !== slug);
-    await putFile(
-      "articles.json",
-      utf8ToBase64(JSON.stringify(updated, null, 2)),
-      current.sha,
-      `Supprimer article: ${slug}`
-    );
-    loadExisting();
-  } catch (err) {
-    alert("Erreur lors de la suppression : " + err.message);
+  if (btn) { btn.disabled = true; btn.textContent = "Suppression…"; }
+
+  // Réessaie automatiquement une fois en cas de conflit de version
+  // (ex. deux actions rapprochées) — évite d'afficher une erreur
+  // technique pour quelque chose qui se règle en relisant le fichier.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const current = await getFile("articles.json");
+      const currentArticles = JSON.parse(base64ToUtf8(current.content));
+      const updated = currentArticles.filter(a => a.slug !== slug);
+      await putFile(
+        "articles.json",
+        utf8ToBase64(JSON.stringify(updated, null, 2)),
+        current.sha,
+        `Supprimer article: ${slug}`
+      );
+      loadExisting();
+      return;
+    } catch (err) {
+      const isConflict = /does not match|sha/i.test(err.message);
+      if (isConflict && attempt === 0) continue; // réessaie avec le sha à jour
+      alert("Erreur lors de la suppression : " + err.message);
+      if (btn) { btn.disabled = false; btn.textContent = "Supprimer"; }
+      return;
+    }
   }
 }
 
