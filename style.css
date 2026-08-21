@@ -108,6 +108,21 @@ a { color: inherit; }
   font-size: 1rem;
 }
 
+/* Menu déroulant mobile — activé en JS via la classe .open */
+.main-nav.open {
+  display: flex !important;
+  flex-direction: column;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--paper);
+  padding: 18px 24px 22px;
+  border-bottom: 1px solid var(--line);
+  box-shadow: var(--shadow-md);
+  gap: 16px;
+}
+
 /* ---------- Page hero (blog index) ---------- */
 .blog-hero {
   background: var(--navy);
@@ -493,6 +508,109 @@ a { color: inherit; }
 .share-btn:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
+}
+
+/* ---------- Pop-up infolettre (image + formulaire) ---------- */
+.newsletter-overlay {
+  position: fixed; inset: 0; background: rgba(20,24,28,0.55);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px; z-index: 200;
+}
+.newsletter-overlay.visible { display: flex; }
+
+.newsletter-popup {
+  background: var(--paper); border-radius: var(--radius);
+  max-width: 720px; width: 100%; overflow: hidden;
+  box-shadow: var(--shadow-lg); position: relative;
+  display: grid; grid-template-columns: 1fr 1fr;
+}
+
+.newsletter-popup__photo { display: block; }
+.newsletter-popup__photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.newsletter-popup__content { padding: 34px 32px; display: flex; flex-direction: column; }
+
+.newsletter-popup__close {
+  position: absolute; top: 14px; right: 14px;
+  background: rgba(255,255,255,0.9); border: none; border-radius: 50%;
+  width: 30px; height: 30px; font-size: 1.05rem; color: var(--ink);
+  cursor: pointer; line-height: 1; z-index: 2;
+}
+
+.newsletter-popup__eyebrow {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--coral); margin-bottom: 10px;
+}
+
+.newsletter-popup h3 {
+  font-family: var(--font-display); font-size: 1.5rem;
+  margin: 0 0 10px; line-height: 1.25;
+}
+
+.newsletter-popup p.sub {
+  color: var(--muted); font-size: 0.92rem; margin: 0 0 22px; line-height: 1.5;
+}
+
+.newsletter-popup input[type="email"] {
+  width: 100%; font-family: var(--font-body); font-size: 0.95rem;
+  padding: 12px 14px; border: 1px solid rgba(20,24,28,0.12);
+  border-radius: 10px; background: var(--canvas); margin-bottom: 14px;
+}
+.newsletter-popup input:focus {
+  outline: none; border-color: var(--coral); box-shadow: 0 0 0 3px var(--coral-soft);
+}
+
+.newsletter-popup__consent {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 0.76rem; color: var(--muted); line-height: 1.5; margin-bottom: 16px;
+}
+.newsletter-popup__consent input { margin-top: 3px; flex-shrink: 0; }
+
+.newsletter-popup button[type="submit"] {
+  font-family: var(--font-body); font-weight: 600; font-size: 0.95rem;
+  background: var(--navy); color: #fff; border: none;
+  padding: 12px 20px; border-radius: 10px; cursor: pointer;
+  box-shadow: var(--shadow-sm); margin-bottom: 12px;
+}
+
+.newsletter-popup__dismiss {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.8rem; color: var(--muted); margin-top: auto; padding-top: 8px;
+}
+
+.newsletter-popup__status { font-size: 0.85rem; margin-top: 6px; }
+.newsletter-popup__status.success { color: #2c6e49; }
+.newsletter-popup__status.error { color: #b8371f; }
+
+@media (max-width: 640px) {
+  .newsletter-popup { grid-template-columns: 1fr; }
+  .newsletter-popup__photo { display: none; }
+}
+
+/* ---------- Carte "Une question ?" dans la sidebar ---------- */
+.sidebar-cta {
+  margin-top: 32px;
+  padding: 22px 20px;
+  background: var(--navy);
+  color: #fff;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+.sidebar-cta__eyebrow {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: #f0a58f; margin-bottom: 8px;
+}
+.sidebar-cta h4 {
+  font-family: var(--font-display); font-size: 1.1rem;
+  margin: 0 0 10px; line-height: 1.3;
+}
+.sidebar-cta p {
+  font-size: 0.85rem; color: #c3ccdc; margin: 0 0 16px; line-height: 1.5;
+}
+.sidebar-cta a {
+  display: inline-block; background: #fff; color: var(--navy);
+  font-weight: 600; font-size: 0.85rem; text-decoration: none;
+  padding: 9px 16px; border-radius: 8px;
 }
 
 /* ---------- Footer ---------- */
