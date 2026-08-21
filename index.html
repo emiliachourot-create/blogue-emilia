@@ -12,14 +12,14 @@
 <header class="site-header">
   <div class="site-header__inner">
     <a href="index.html" class="logo">Émilia<span>.</span></a>
-    <nav class="main-nav" aria-label="Navigation principale">
+    <nav class="main-nav" id="mainNav" aria-label="Navigation principale">
       <a href="#" aria-current="page">Blogue</a>
       <a href="#">Résidentiel</a>
       <a href="#">Commercial</a>
       <a href="#">RPA / RI</a>
       <a href="#">Contact</a>
     </nav>
-    <button class="nav-toggle" aria-label="Ouvrir le menu">☰</button>
+    <button class="nav-toggle" id="navToggle" aria-label="Ouvrir le menu">☰</button>
   </div>
 </header>
 
@@ -191,6 +191,70 @@ loadArticles().then(() => {
   populateCategories();
   renderFeatured(articles);
   renderGrid(articles);
+});
+</script>
+
+<!-- Pop-up formulaire de contact -->
+<div class="contact-popup-overlay" id="contactPopupOverlay">
+  <div class="contact-popup">
+    <button class="contact-popup__close" id="contactPopupClose" aria-label="Fermer">✕</button>
+    <div class="contact-popup__eyebrow">Une question ?</div>
+    <h3>Discutons de votre projet immobilier</h3>
+    <p class="sub">Résidentiel, commercial ou RPA/RI — je réponds personnellement à chaque message.</p>
+    <form id="contactPopupForm">
+      <input type="text" id="cpName" placeholder="Votre nom" required>
+      <input type="email" id="cpEmail" placeholder="Votre courriel" required>
+      <input type="tel" id="cpPhone" placeholder="Téléphone (optionnel)">
+      <textarea id="cpMessage" placeholder="Votre message" required></textarea>
+      <button type="submit">Envoyer le message</button>
+    </form>
+  </div>
+</div>
+
+<script>
+// Courriel qui reçoit les messages — à remplacer par la vraie adresse d'Émilia.
+const CONTACT_EMAIL = "chourotemilia@hotmail.com";
+
+(function () {
+  const overlay = document.getElementById("contactPopupOverlay");
+  const closeBtn = document.getElementById("contactPopupClose");
+  const form = document.getElementById("contactPopupForm");
+  const SESSION_KEY = "contact_popup_shown";
+
+  // Apparaît une seule fois par visite, après un court délai — jamais
+  // au chargement immédiat, et jamais répété si déjà vu cette session.
+  if (!sessionStorage.getItem(SESSION_KEY)) {
+    setTimeout(() => {
+      overlay.classList.add("visible");
+      sessionStorage.setItem(SESSION_KEY, "1");
+    }, 9000);
+  }
+
+  closeBtn.addEventListener("click", () => overlay.classList.remove("visible"));
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) overlay.classList.remove("visible");
+  });
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = document.getElementById("cpName").value;
+    const email = document.getElementById("cpEmail").value;
+    const phone = document.getElementById("cpPhone").value;
+    const message = document.getElementById("cpMessage").value;
+
+    const subject = encodeURIComponent(`Message du site — ${name}`);
+    const body = encodeURIComponent(
+      `Nom: ${name}\nCourriel: ${email}\nTéléphone: ${phone || "(non fourni)"}\n\nMessage:\n${message}`
+    );
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+    overlay.classList.remove("visible");
+  });
+})();
+</script>
+
+<script>
+document.getElementById("navToggle").addEventListener("click", () => {
+  document.getElementById("mainNav").classList.toggle("open");
 });
 </script>
 
